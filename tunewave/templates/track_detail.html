@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ track['title'] }} · TuneWave{% endblock %}
+
+{% block content %}
+  <h1>{{ track['title'] }}</h1>
+  <p class="subtitle">{{ track['artist'] }} &middot; <span class="genre-tag">{{ track['genre'] }}</span> &middot; released {{ track['release_date'] }}</p>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="label">Streams (last 30 days)</div>
+      <div class="value">{{ "{:,}".format(total_30d) }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Average daily streams</div>
+      <div class="value">{{ avg_daily }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Estimated 30-day revenue</div>
+      <div class="value">${{ "{:,.2f}".format(total_30d * 0.004) }}</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Daily streams — last 30 days</h2>
+    <canvas id="trackChart" height="220"></canvas>
+  </div>
+
+  <a class="back-link" href="{{ url_for('catalog') }}">&larr; Back to catalog</a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script>
+    const accent = '#b6ff3c';
+    const grid = '#2b2b38';
+    const muted = '#9292a8';
+
+    const series = {{ series | tojson }};
+    new Chart(document.getElementById('trackChart'), {
+      type: 'bar',
+      data: {
+        labels: series.map(d => d[0].slice(5)),
+        datasets: [{
+          label: 'Streams',
+          data: series.map(d => d[1]),
+          backgroundColor: accent,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: muted, maxTicksLimit: 10 }, grid: { display: false } },
+          y: { ticks: { color: muted }, grid: { color: grid } }
+        }
+      }
+    });
+  </script>
+{% endblock %}

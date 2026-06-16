@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Upload · TuneWave{% endblock %}
+
+{% block content %}
+  <h1>Upload a track</h1>
+  <p class="subtitle">Add a new release to your catalog. Once it's live, TuneWave starts tracking its performance.</p>
+
+  <div class="form-card">
+    <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+      <div class="field">
+        <label for="title">Track title</label>
+        <input type="text" id="title" name="title" placeholder="e.g. Midnight Drive" required>
+      </div>
+      <div class="field">
+        <label for="artist">Artist name</label>
+        <input type="text" id="artist" name="artist" placeholder="e.g. Deetshitha Sukumar" required>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="genre">Genre</label>
+          <select id="genre" name="genre" required>
+            <option value="">Select genre</option>
+            <option>Pop</option>
+            <option>Hip-Hop</option>
+            <option>Electronic</option>
+            <option>Indie</option>
+            <option>R&B</option>
+            <option>Lo-fi</option>
+            <option>Rock</option>
+            <option>Classical</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="release_date">Release date</label>
+          <input type="date" id="release_date" name="release_date" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="cover">Cover art (optional)</label>
+        <input type="file" id="cover" name="cover" accept=".png,.jpg,.jpeg,.webp">
+      </div>
+      <button type="submit" class="btn">Add to catalog</button>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Catalog · TuneWave{% endblock %}
+
+{% block content %}
+  <h1>Your catalog</h1>
+  <p class="subtitle">Every track you've distributed through TuneWave, in one place.</p>
+
+  <div class="btn-row">
+    <a class="btn" href="{{ url_for('upload') }}">+ Upload track</a>
+  </div>
+
+  {% if tracks %}
+    <table>
+      <thead>
+        <tr>
+          <th>Track</th>
+          <th>Genre</th>
+          <th>Release date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tracks %}
+          <tr>
+            <td>
+              <div class="track-cell">
+                {% if t['cover_filename'] %}
+                  <img class="cover-thumb" src="{{ url_for('static', filename='covers/' + t['cover_filename']) }}" alt="">
+                {% else %}
+                  <div class="cover-placeholder">♪</div>
+                {% endif %}
+                <div>
+                  <div><a href="{{ url_for('track_detail', track_id=t['id']) }}">{{ t['title'] }}</a></div>
+                  <div class="muted" style="color: var(--muted); font-size: 0.82rem;">{{ t['artist'] }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="genre-tag">{{ t['genre'] }}</span></td>
+            <td>{{ t['release_date'] }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('delete_track', track_id=t['id']) }}" onsubmit="return confirm('Remove this track from your catalog?');">
+                <button type="submit" class="btn-danger">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      <p>No tracks yet.</p>
+      <a class="btn" href="{{ url_for('upload') }}">Upload your first track</a>
+    </div>
+  {% endif %}
+{% endblock %}

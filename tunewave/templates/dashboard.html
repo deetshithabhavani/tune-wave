@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · TuneWave{% endblock %}
+
+{% block content %}
+  <h1>Catalog performance</h1>
+  <p class="subtitle">
+    A live view of how your music is performing across the last 30 days.
+    Streams update continuously as listeners discover your catalog.
+  </p>
+
+  {% if track_count == 0 %}
+    <div class="empty-state">
+      <p>Your catalog is empty.</p>
+      <a class="btn" href="{{ url_for('upload') }}">Upload your first track</a>
+    </div>
+  {% else %}
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="label">Tracks in catalog</div>
+        <div class="value">{{ track_count }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Streams (last 30 days)</div>
+        <div class="value">{{ "{:,}".format(analytics.streams_30d) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Estimated revenue</div>
+        <div class="value">${{ "{:,.2f}".format(analytics.estimated_revenue) }} <span class="unit">est.</span></div>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel">
+        <h2>Streams over time (last 30 days)</h2>
+        <canvas id="timelineChart" height="220"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Top tracks by streams</h2>
+        <ul class="bar-list">
+          {% set max_streams = analytics.top_tracks[0].streams_30d if analytics.top_tracks else 1 %}
+          {% for t in analytics.top_tracks[:5] %}
+            <li>
+              <div class="bar-top">
+                <a href="{{ url_for('track_detail', track_id=t.id) }}">{{ t.title }}</a>
+                <span class="muted">{{ "{:,}".format(t.streams_30d) }}</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width: {{ (t.streams_30d / max_streams * 100) if max_streams else 0 }}%;"></div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Streams by genre</h2>
+      <canvas id="genreChart" height="120"></canvas>
+    </div>
+  {% endif %}
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script>
+    const accent = '#b6ff3c';
+    const pop = '#7c5cff';
+    const grid = '#2b2b38';
+    const muted = '#9292a8';
+
+    {% if track_count > 0 %}
+    const timelineData = {{ analytics.timeline | tojson }};
+    new Chart(document.getElementById('timelineChart'), {
+      type: 'line',
+      data: {
+        labels: timelineData.map(d => d.date.slice(5)),
+        datasets: [{
+          label: 'Streams',
+          data: timelineData.map(d => d.streams),
+          borderColor: accent,
+          backgroundColor: 'rgba(182,255,60,0.12)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: muted, maxTicksLimit: 8 }, grid: { color: grid } },
+          y: { ticks: { color: muted }, grid: { color: grid } }
+        }
+      }
+    });
+
+    const genreTotals = {{ analytics.genre_totals | tojson }};
+    new Chart(document.getElementById('genreChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(genreTotals),
+        datasets: [{
+          label: 'Streams (30d)',
+          data: Object.values(genreTotals),
+          backgroundColor: pop,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: muted }, grid: { color: grid } },
+          y: { ticks: { color: muted }, grid: { display: false } }
+        }
+      }
+    });
+    {% endif %}
+  </script>
+{% endblock %}
